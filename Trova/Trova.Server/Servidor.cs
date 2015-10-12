@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -15,6 +16,9 @@ namespace Trova.Server
         private Task aguardarConexoes;
         private bool parar;
         private IDictionary<string, Cliente> clientes;
+
+        public delegate void ListaClientesMudouHandler(IList<string> lista);
+        public event ListaClientesMudouHandler ListaClientesMudou;
 
         public Servidor(int porta)
         {
@@ -37,6 +41,11 @@ namespace Trova.Server
         {
             parar = true;
 
+            if (aguardarConexoes != null)
+            {
+                aguardarConexoes.Wait(5000);
+            }
+
             if (clientes != null)
             {
                 foreach (var cliente in clientes.Values)
@@ -45,11 +54,7 @@ namespace Trova.Server
                 }
 
                 clientes.Clear();
-            }
-            
-            if (aguardarConexoes != null)
-            {
-                aguardarConexoes.Wait(5000);
+                NotificarMudancaListaClientes();
             }
         }
 
@@ -89,6 +94,7 @@ namespace Trova.Server
             lock (this)
             {
                 clientes.Add(cliente.Apelido, cliente);
+                NotificarMudancaListaClientes();
             }
 
             cliente.Enviar(new Ok());
@@ -103,12 +109,12 @@ namespace Trova.Server
             cliente.ClienteDesconectou -= OnClienteDesconectou;
         }
 
-        public void OnClienteEnviouMensagem(Cliente sender, object mensagem)
+        private void OnClienteEnviouMensagem(Cliente sender, object mensagem)
         {
 
         }
 
-        public void OnClienteDisparouException(Cliente sender, Exception ex)
+        private void OnClienteDisparouException(Cliente sender, Exception ex)
         {
 
         }
@@ -120,7 +126,13 @@ namespace Trova.Server
             lock (this)
             {
                 clientes.Remove(cliente.Apelido);
+                NotificarMudancaListaClientes();
             }
+        }
+
+        private void NotificarMudancaListaClientes()
+        {
+            ListaClientesMudou(clientes.Keys.ToList());
         }
     }
 }
