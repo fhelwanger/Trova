@@ -88,9 +88,9 @@ namespace Trova.Server
             }
 
             cliente.Apelido = entrar.Apelido;
-            cliente.ClienteEnviouMensagem += OnClienteEnviouMensagem;
-            cliente.ClienteDisparouException += OnClienteDisparouException;
-            cliente.ClienteDesconectou += OnClienteDesconectou;
+            cliente.RecebeuMensagem += cliente_RecebeuMensagem;
+            cliente.DisparouException += cliente_DisparouException;
+            cliente.Desconectou += cliente_Desconectou;
 
             lock (this)
             {
@@ -105,22 +105,35 @@ namespace Trova.Server
         private void FinalizarCliente(Cliente cliente)
         {
             cliente.Encerrar();
-            cliente.ClienteEnviouMensagem -= OnClienteEnviouMensagem;
-            cliente.ClienteDisparouException -= OnClienteDisparouException;
-            cliente.ClienteDesconectou -= OnClienteDesconectou;
+            cliente.RecebeuMensagem -= cliente_RecebeuMensagem;
+            cliente.DisparouException -= cliente_DisparouException;
+            cliente.Desconectou -= cliente_Desconectou;
         }
 
-        private void OnClienteEnviouMensagem(Cliente sender, object mensagem)
+        private void cliente_RecebeuMensagem(Cliente sender, object mensagem)
         {
+            if (mensagem as EnviarMensagemPublica != null)
+            {
+                var m = (EnviarMensagemPublica)mensagem;
+                var m2 = new MensagemPublica()
+                {
+                    Origem = m.Origem,
+                    Mensagem = m.Mensagem
+                };
 
+                foreach (var cliente in clientes.Values)
+                {
+                    cliente.Enviar(m2);
+                }
+            }
         }
 
-        private void OnClienteDisparouException(Cliente sender, Exception ex)
+        private void cliente_DisparouException(Cliente sender, Exception ex)
         {
             // TODO: Log?
         }
 
-        private void OnClienteDesconectou(Cliente cliente)
+        private void cliente_Desconectou(Cliente cliente)
         {
             FinalizarCliente(cliente);
 

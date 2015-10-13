@@ -13,14 +13,14 @@ namespace Trova.Core
 
         public string Apelido { get; set; }
         
-        public delegate void ClienteEnviouMensagemHandler(Cliente sender, object mensagem);
-        public event ClienteEnviouMensagemHandler ClienteEnviouMensagem;
+        public delegate void RecebeuMensagemHandler(Cliente sender, object mensagem);
+        public event RecebeuMensagemHandler RecebeuMensagem;
 
-        public delegate void ClienteDisparouExceptionHandler(Cliente sender, Exception ex);
-        public event ClienteDisparouExceptionHandler ClienteDisparouException;
+        public delegate void DisparouExceptionHandler(Cliente sender, Exception ex);
+        public event DisparouExceptionHandler DisparouException;
 
-        public delegate void ClienteDesconectouHandler(Cliente sender);
-        public event ClienteDesconectouHandler ClienteDesconectou;
+        public delegate void DesconectouHandler(Cliente sender);
+        public event DesconectouHandler Desconectou;
 
         public Cliente(TcpClient tcpClient)
         {
@@ -43,7 +43,7 @@ namespace Trova.Core
             }
             catch (Exception ex)
             {
-                ClienteDisparouException(this, ex);
+                DisparouException(this, ex);
             }
         }
 
@@ -57,7 +57,7 @@ namespace Trova.Core
             }
             catch (Exception ex)
             {
-                ClienteDisparouException(this, ex);
+                DisparouException(this, ex);
                 return null;
             }
         }
@@ -83,7 +83,7 @@ namespace Trova.Core
             {
                 if (!tcpClient.Connected)
                 {
-                    ClienteDesconectou(this);
+                    Desconectou(this);
                     break;
                 }
 
@@ -93,7 +93,7 @@ namespace Trova.Core
                     continue;
                 }
 
-
+                RecebeuMensagem(this, Receber());
             }
         }
     }
