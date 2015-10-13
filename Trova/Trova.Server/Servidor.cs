@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Trova.Core;
 using Trova.Core.Requests;
 using Trova.Core.Responses;
 
@@ -116,7 +117,7 @@ namespace Trova.Server
 
         private void OnClienteDisparouException(Cliente sender, Exception ex)
         {
-
+            // TODO: Log?
         }
 
         private void OnClienteDesconectou(Cliente cliente)

@@ -16,7 +16,10 @@ namespace Trova.Client
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frmClient());
+
+            new frmEntrar().Show();
+
+            Application.Run();
         }
     }
 }

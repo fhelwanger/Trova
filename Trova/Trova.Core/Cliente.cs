@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 
-namespace Trova.Server
+namespace Trova.Core
 {
     public class Cliente
     {
@@ -86,6 +86,14 @@ namespace Trova.Server
                     ClienteDesconectou(this);
                     break;
                 }
+
+                if (tcpClient.Available == 0)
+                {
+                    Task.Delay(10).Wait();
+                    continue;
+                }
+
+
             }
         }
     }
