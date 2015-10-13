@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Trova.Core;
@@ -22,9 +23,9 @@ namespace Trova.Client
 
         private void cliente_ClienteRecebeuMensagem(Cliente sender, object mensagem)
         {
-            if (mensagem as MensagemPublica != null)
+            if (mensagem as Mensagem != null)
             {
-                TratarMensagemPublica((MensagemPublica)mensagem);    
+                TratarMensagem((Mensagem)mensagem);    
             }
             else if (mensagem as AvisoServidor != null)
             {
@@ -36,9 +37,9 @@ namespace Trova.Client
             }
         }
         
-        private void TratarMensagemPublica(MensagemPublica mensagem)
+        private void TratarMensagem(Mensagem mensagem)
         {
-            AdicionarTexto($"{mensagem.Origem}: {mensagem.Mensagem}");
+            AdicionarTexto($"{mensagem.Origem}: {mensagem.Texto}");
         }
 
         private void TratarAvisoServidor(AvisoServidor aviso)
@@ -48,9 +49,14 @@ namespace Trova.Client
 
         private void TratarListaConectados(ListaClientesConectados lista)
         {
+            var ds = new List<string>();
+
+            ds.Add("Todos");
+            ds.AddRange(lista.Apelidos);
+
             Invoke(new Action(() =>
             {
-                lstClientes.DataSource = (lista).Apelidos;
+                lstClientes.DataSource = ds;
             }));
         }
 
@@ -86,12 +92,26 @@ namespace Trova.Client
 
         private void EnviarMensagem()
         {
-            var mensagem = new EnviarMensagemPublica()
-            {
-                Origem = cliente.Apelido,
-                Mensagem = txtMensagem.Text
-            };
+            object mensagem;
 
+            if (lstClientes.SelectedIndex <= 0)
+            {
+                mensagem = new EnviarMensagemPublica()
+                {
+                    Origem = cliente.Apelido,
+                    Mensagem = txtMensagem.Text
+                };
+            }
+            else
+            {
+                mensagem = new EnviarMensagemPrivada()
+                {
+                    Destino = lstClientes.Text,
+                    Origem = cliente.Apelido,
+                    Mensagem = txtMensagem.Text
+                };
+            }
+            
             cliente.Enviar(mensagem);
 
             txtMensagem.Clear();

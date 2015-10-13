@@ -44,10 +44,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Requests\Desconectar.cs" />
     <Compile Include="Requests\Entrar.cs" />
+    <Compile Include="Requests\EnviarMensagemPrivada.cs" />
     <Compile Include="Requests\EnviarMensagemPublica.cs" />
     <Compile Include="Responses\AvisoServidor.cs" />
     <Compile Include="Responses\ListaClientesConectados.cs" />
-    <Compile Include="Responses\MensagemPublica.cs" />
+    <Compile Include="Responses\Mensagem.cs" />
     <Compile Include="Responses\Erro.cs" />
     <Compile Include="Responses\Ok.cs" />
   </ItemGroup>

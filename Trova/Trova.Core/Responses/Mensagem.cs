@@ -3,9 +3,9 @@
 namespace Trova.Core.Responses
 {
     [Serializable]
-    public class MensagemPublica
+    public class Mensagem
     {
         public string Origem { get; set; }
-        public string Mensagem { get; set; }
+        public string Texto { get; set; }
     }
 }

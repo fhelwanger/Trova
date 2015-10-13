@@ -128,7 +128,11 @@ namespace Trova.Server
 
         private void cliente_RecebeuMensagem(Cliente sender, object mensagem)
         {
-            if (mensagem as EnviarMensagemPublica != null)
+            if (mensagem as EnviarMensagemPrivada != null)
+            {
+                TratarMensagemPrivada((EnviarMensagemPrivada)mensagem);
+            }
+            else if (mensagem as EnviarMensagemPublica != null)
             {
                 TratarMensagemPublica((EnviarMensagemPublica)mensagem);
             }
@@ -140,11 +144,27 @@ namespace Trova.Server
 
         private void TratarMensagemPublica(EnviarMensagemPublica mensagem)
         {
-            EnviarMensagem(new MensagemPublica()
+            EnviarMensagem(new Mensagem()
             {
                 Origem = mensagem.Origem,
-                Mensagem = mensagem.Mensagem
+                Texto = mensagem.Mensagem
             });
+        }
+
+        private void TratarMensagemPrivada(EnviarMensagemPrivada mensagem)
+        {
+            var msg = new Mensagem()
+            {
+                Origem = mensagem.Origem,
+                Texto = mensagem.Mensagem
+            };
+
+            if (mensagem.Origem != mensagem.Destino)
+            {
+                clientes[mensagem.Origem].Enviar(msg);
+            }
+            
+            clientes[mensagem.Destino].Enviar(msg);
         }
 
         private void cliente_DisparouException(Cliente sender, Exception ex)
