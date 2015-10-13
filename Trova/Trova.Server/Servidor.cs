@@ -73,7 +73,7 @@ namespace Trova.Server
                 }
             }
         }
-
+        
         private void AceitarNovoCliente(TcpClient tcpClient)
         {
             var cliente = new Cliente(tcpClient);
@@ -95,10 +95,15 @@ namespace Trova.Server
             lock (this)
             {
                 clientes.Add(cliente.Apelido, cliente);
+                cliente.Enviar(new Ok());
                 NotificarMudancaListaClientes();
             }
 
-            cliente.Enviar(new Ok());
+            EnviarMensagem(new AvisoServidor()
+            {
+                Aviso = $"{cliente.Apelido} entrou na sala."
+            });
+
             cliente.Iniciar();
         }
 
@@ -109,23 +114,37 @@ namespace Trova.Server
             cliente.DisparouException -= cliente_DisparouException;
             cliente.Desconectou -= cliente_Desconectou;
         }
+        
+        private void EnviarMensagem(object mensagem)
+        {
+            lock (this)
+            {
+                foreach (var cliente in clientes.Values)
+                {
+                    cliente.Enviar(mensagem);
+                }
+            }
+        }
 
         private void cliente_RecebeuMensagem(Cliente sender, object mensagem)
         {
             if (mensagem as EnviarMensagemPublica != null)
             {
-                var m = (EnviarMensagemPublica)mensagem;
-                var m2 = new MensagemPublica()
-                {
-                    Origem = m.Origem,
-                    Mensagem = m.Mensagem
-                };
-
-                foreach (var cliente in clientes.Values)
-                {
-                    cliente.Enviar(m2);
-                }
+                TratarMensagemPublica((EnviarMensagemPublica)mensagem);
             }
+            else if (mensagem as Desconectar != null)
+            {
+                cliente_Desconectou(sender);
+            }
+        }
+
+        private void TratarMensagemPublica(EnviarMensagemPublica mensagem)
+        {
+            EnviarMensagem(new MensagemPublica()
+            {
+                Origem = mensagem.Origem,
+                Mensagem = mensagem.Mensagem
+            });
         }
 
         private void cliente_DisparouException(Cliente sender, Exception ex)
@@ -142,11 +161,24 @@ namespace Trova.Server
                 clientes.Remove(cliente.Apelido);
                 NotificarMudancaListaClientes();
             }
+
+            EnviarMensagem(new AvisoServidor()
+            {
+                Aviso = $"{cliente.Apelido} saiu da sala."
+            });
         }
 
         private void NotificarMudancaListaClientes()
         {
-            ListaClientesMudou(clientes.Keys.ToList());
+            if (ListaClientesMudou != null)
+            {
+                ListaClientesMudou(clientes.Keys.ToList());
+            }
+            
+            EnviarMensagem(new ListaClientesConectados()
+            {
+                Apelidos = clientes.Keys.ToArray()
+            });
         }
     }
 }

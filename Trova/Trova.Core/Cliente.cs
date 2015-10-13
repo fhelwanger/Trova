@@ -43,7 +43,7 @@ namespace Trova.Core
             }
             catch (Exception ex)
             {
-                DisparouException(this, ex);
+                Task.Run(() => OnDisparouException(ex));
             }
         }
 
@@ -57,7 +57,7 @@ namespace Trova.Core
             }
             catch (Exception ex)
             {
-                DisparouException(this, ex);
+                Task.Run(() => OnDisparouException(ex));
                 return null;
             }
         }
@@ -83,7 +83,7 @@ namespace Trova.Core
             {
                 if (!tcpClient.Connected)
                 {
-                    Desconectou(this);
+                    Task.Run(() => OnDesconectou());
                     break;
                 }
 
@@ -93,7 +93,32 @@ namespace Trova.Core
                     continue;
                 }
 
-                RecebeuMensagem(this, Receber());
+                var msg = Receber();
+                Task.Run(() => OnRecebeuMensagem(msg));
+            }
+        }
+
+        private void OnRecebeuMensagem(object mensagem)
+        {
+            if (RecebeuMensagem != null && mensagem != null)
+            {
+                RecebeuMensagem(this, mensagem);
+            }
+        }
+
+        private void OnDisparouException(Exception ex)
+        {
+            if (DisparouException != null)
+            {
+                DisparouException(this, ex);
+            }
+        }
+
+        private void OnDesconectou()
+        {
+            if (Desconectou != null)
+            {
+                Desconectou(this);
             }
         }
     }

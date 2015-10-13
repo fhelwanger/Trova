@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Trova.Core;
 using Trova.Core.Requests;
@@ -25,23 +26,43 @@ namespace Trova.Client
             {
                 TratarMensagemPublica((MensagemPublica)mensagem);    
             }
+            else if (mensagem as AvisoServidor != null)
+            {
+                TratarAvisoServidor((AvisoServidor)mensagem);
+            }
+            else if (mensagem as ListaClientesConectados != null)
+            {
+                TratarListaConectados((ListaClientesConectados)mensagem);
+            }
+        }
+        
+        private void TratarMensagemPublica(MensagemPublica mensagem)
+        {
+            AdicionarTexto($"{mensagem.Origem}: {mensagem.Mensagem}");
         }
 
-        private void TratarMensagemPublica(MensagemPublica mensagem)
+        private void TratarAvisoServidor(AvisoServidor aviso)
+        {
+            AdicionarTexto(aviso.Aviso);
+        }
+
+        private void TratarListaConectados(ListaClientesConectados lista)
         {
             Invoke(new Action(() =>
             {
-                txtMensagens.AppendText($"{mensagem.Origem}: {mensagem.Mensagem}\n");
+                lstClientes.DataSource = (lista).Apelidos;
             }));
         }
 
-        private void frmMensagens_Load(object sender, System.EventArgs e)
+        private void frmMensagens_Load(object sender, EventArgs e)
         {
             txtMensagem.Focus();
         }
 
         private void frmMensagens_FormClosed(object sender, FormClosedEventArgs e)
         {
+            cliente.Enviar(new Desconectar());
+            Task.Delay(100).Wait();
             Application.Exit();
         }
 
@@ -74,6 +95,15 @@ namespace Trova.Client
             cliente.Enviar(mensagem);
 
             txtMensagem.Clear();
+        }
+
+        private void AdicionarTexto(string texto)
+        {
+            Invoke(new Action(() =>
+            {
+                txtMensagens.AppendText(texto);
+                txtMensagens.AppendText("\r\n");
+            }));
         }
     }
 }
